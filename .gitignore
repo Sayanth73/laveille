@@ -1,0 +1,93 @@
+# =====================================================================
+# La Veillée — .gitignore
+# Repo planning + futur projet Unity iOS
+# =====================================================================
+
+# ---- Local agent / IDE / system ----
+.claude/
+.gemini/
+.antigravity/
+.bg-shell/
+.cache/
+.lmstudio/
+.lmstudio-home-pointer
+.vscode/
+.idea/
+.vs/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Secrets / credentials ----
+*.env
+.env.*
+*.pem
+*.key
+GoogleService-Info.plist
+google-services.json
+fastlane/.env*
+ApiKeys.cs
+Secrets.cs
+
+# ---- Unity (préventif — projet à venir Story 1.1) ----
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+MemoryCaptures/
+Recordings/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+sysinfo.txt
+
+# Unity Asset meta files only versioned with their assets
+# (handled by Unity itself — keep .meta files)
+
+# ---- Xcode / iOS build artifacts ----
+*.ipa
+*.dSYM.zip
+*.dSYM
+DerivedData/
+xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+Pods/
+
+# ---- Node / npm (tooling éventuel) ----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---- Python (Tools/elevenlabs-generator/) ----
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+
+# ---- Logs ----
+*.log
+logs/
+
+# ---- BMAD output non versionné ----
+_bmad-output/implementation-artifacts/build-*/
+_bmad-output/test-artifacts/runs/
