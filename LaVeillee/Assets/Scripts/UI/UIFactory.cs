@@ -73,12 +73,28 @@ namespace LaVeillee.UI
 
         static TMP_FontAsset _defaultFontAsset;
 
-        /// TMP a besoin d'un FontAsset sinon le texte ne rend rien. On by-pass complètement
-        /// TMP_Settings (dont le getter NPE si TMP Essentials pas importé) et on fabrique
-        /// systématiquement un TMP_FontAsset dynamique depuis LegacyRuntime.ttf.
+        /// TMP a besoin d'un FontAsset sinon le texte ne rend rien. Stratégie :
+        /// 1) Si TMP_Settings est dispo (Essentials importé par TMPEssentialsImporter),
+        ///    on prend son defaultFontAsset.
+        /// 2) Sinon fallback dynamique depuis LegacyRuntime.ttf — mais CreateFontAsset
+        ///    dépend lui-même de TMP_Settings donc peut retourner null.
         static TMP_FontAsset EnsureDefaultFont()
         {
             if (_defaultFontAsset != null) return _defaultFontAsset;
+
+            try
+            {
+                if (TMP_Settings.instance != null)
+                {
+                    var settingsDefault = TMP_Settings.defaultFontAsset;
+                    if (settingsDefault != null)
+                    {
+                        _defaultFontAsset = settingsDefault;
+                        return _defaultFontAsset;
+                    }
+                }
+            }
+            catch { /* TMP Essentials pas encore importé — fallback ci-dessous */ }
 
             var builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
                               ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
@@ -89,6 +105,11 @@ namespace LaVeillee.UI
             }
 
             _defaultFontAsset = TMP_FontAsset.CreateFontAsset(builtinFont);
+            if (_defaultFontAsset == null)
+            {
+                Debug.LogError("[UIFactory] TMP_FontAsset.CreateFontAsset a retourné null. TMP Essentials doit être importé : menu LaVeillee → Bootstrap → Import TMP Essentials, puis re-enter Play Mode.");
+                return null;
+            }
             _defaultFontAsset.name = "LaVeilleeRuntimeTMPFont";
             return _defaultFontAsset;
         }
