@@ -184,10 +184,10 @@ Ce document décompose les exigences du GDD de **La Veillée** (adaptation mobil
 
 > ⚠️ **Note** : Aucun document `Architecture.md` n'existe à date. Les exigences techniques ci-dessous sont dérivées des sections "Technical Specifications", "Asset Requirements" et "Dependencies" du GDD. Story 1.1 fait office de bootstrap projet et tient lieu de "starter template".
 
-**Stack Technique**
-- Engine : **Unity 2023 LTS** + iOS build toolchain (Xcode)
-- Multijoueur : **Photon Quantum** ou **Mirror** (à trancher en Story 1.4)
-- Vocal : **Agora SDK** ou **LiveKit** (à trancher en Story 1.5 — benchmark requis)
+**Stack Technique** _(superseded by `_bmad-output/game-architecture.md` + ADRs — voir notes ci-dessous)_
+- Engine : ~~**Unity 2023 LTS**~~ → **Unity 6.4 LTS** + iOS build toolchain (Xcode) _(ADR-008)_
+- Multijoueur : ~~Photon Quantum ou Mirror~~ → **Photon Fusion 2** _(ADR-001 — décision figée, plus à trancher en 1.4)_
+- Vocal : ~~Agora ou LiveKit~~ → **Photon Voice 2** _(ADR-002 — stack unifiée, benchmark résiduel à la Story 1.5 pour valider latence)_
 - Backend : **Firebase** (Auth, Firestore, Analytics, Cloud Save, Remote Config, Crashlytics)
 - Voix MJ : **ElevenLabs API** (mode bundled v1, streaming si budget v2)
 - IAP : App Store In-App Purchase
@@ -433,7 +433,10 @@ So that mes amis me reconnaissent dans une partie et je peux passer le tél à q
 **Then** un message d'erreur en français explique la contrainte
 **And** le bouton "Valider" reste désactivé tant que la contrainte n'est pas respectée
 
-### Story 1.4 : Stack multijoueur (Photon ou Mirror) et room minimaliste
+### Story 1.4 : Stack multijoueur Photon Fusion 2 et room minimaliste
+
+_Note : le titre original "Photon ou Mirror" est superseded par ADR-001 (Photon Fusion 2 figé). L'AC "décision tranchée" reste valide — la décision est dans l'architecture._
+
 
 As a joueur,
 I want pouvoir rejoindre une room réseau avec d'autres joueurs,
@@ -441,8 +444,8 @@ So that la couche multijoueur est validée techniquement avant qu'on construise 
 
 **Acceptance Criteria :**
 
-**Given** la décision Photon Quantum vs Mirror est tranchée et documentée
-**When** la SDK choisie est intégrée au projet Unity
+**Given** la décision est figée : **Photon Fusion 2** (ADR-001)
+**When** la SDK Fusion 2 est intégrée au projet Unity
 **Then** un script `RoomManager.cs` expose `CreateRoom()`, `JoinRoom(roomId)`, `LeaveRoom()`, `GetPlayersInRoom()`
 **And** une scène `DevTestRoom.unity` permet de tester ces méthodes via boutons UI placeholders
 
@@ -459,7 +462,10 @@ So that la couche multijoueur est validée techniquement avant qu'on construise 
 **When** un 26ème joueur tente `JoinRoom()`
 **Then** la SDK retourne une erreur `RoomFull` et l'UI affiche un message clair
 
-### Story 1.5 : Vocal intégré (Agora ou LiveKit) avec sync room
+### Story 1.5 : Vocal intégré Photon Voice 2 avec sync room
+
+_Note : le titre original "Agora ou LiveKit" est superseded par ADR-002 (Photon Voice 2 figé). Benchmark de latence reste à faire pour valider NFR4 p95 < 250ms._
+
 
 As a joueur,
 I want parler aux autres joueurs présents dans la même room,
@@ -467,8 +473,8 @@ So that la promesse "vocal intégré sans Discord" est validée.
 
 **Acceptance Criteria :**
 
-**Given** la décision Agora vs LiveKit est tranchée après benchmark de latence et de coût
-**When** la SDK choisie est intégrée et configurée
+**Given** la décision est figée : **Photon Voice 2** (ADR-002) ; benchmark latence à exécuter à cette story (pivot Agora préempté si p95 > 250ms)
+**When** la SDK Photon Voice 2 est intégrée et configurée
 **Then** un script `VoiceManager.cs` expose `JoinVoiceChannel(roomId)`, `LeaveVoiceChannel()`, `MuteSelf(bool)`, `OnSomeoneSpeaking(playerId, isSpeaking)`
 
 **Given** deux joueurs sont dans la même room (Story 1.4) et `JoinVoiceChannel` a été appelé

@@ -1,7 +1,23 @@
 # Project State — La Veillée
 
 **Project :** lg (La Veillée — Loups-Garous mobile iOS)
-**Last updated :** 2026-04-20
+**Last updated :** 2026-04-21 (Story 1.5 livrée — voice E2E à 2 instances ✅)
+
+---
+
+## Current Execution State
+
+- **Épopée active :** 1 — Plateforme & Authentification
+- **Stories livrées :**
+  - 1.1 — Bootstrap Unity iOS (phase dev ✅ ; phase CI/TestFlight ⏸️ bloquée ADP)
+  - 1.4 — Stack multijoueur Photon Fusion 2 (✅ complet — DevTestRoom valide la création/rejoindre room avec 2 instances)
+  - 1.5 — Vocal intégré Photon Voice 2 (✅ complet — 2 instances macOS s'entendent mutuellement, mute fonctionne)
+- **Stories bloquées (ADP) :** 1.2 (Sign in with Apple), 1.3 (TestFlight pipeline)
+- **Prochaine option :** Story 1.6 (si elle existe) ou Story 2.x (lobby/UX) — au choix
+- **Moteur :** Unity 6.4.3f1 LTS (pivot vs plan initial — cf. [`docs/adr/ADR-008-unity-6-lts-pivot.md`](../docs/adr/ADR-008-unity-6-lts-pivot.md))
+- **Stack réseau :** Photon Fusion 2 v2.0.12 — Shared mode (peer-to-peer, pas de serveur dédié pour v1)
+- **Stack vocal :** Photon Voice 2 — auto-follow Fusion (voice room `<sessionName>_voice`)
+- **Projet Unity :** `LaVeillee/` (sibling à `_bmad-output/`, `.planning/`, `docs/`)
 
 ---
 
@@ -30,9 +46,11 @@ Stories à insérer dans `epics.md` avant l'exécution des épopées concernées
 - [Insert Story 8.6 — Système de signalement vocal abusif](todos/pending/2026-04-20-story-8-6-voice-reporting.md) — avant Story 11.3 (App Store soumission)
 - [Insert Story 10.6 — Suppression de compte RGPD-compliant](todos/pending/2026-04-20-story-10-6-account-deletion-rgpd.md) — avant Story 11.3 (App Store soumission)
 
-### Completed Todos (0)
+### Completed Todos (3)
 
-Aucun encore.
+- [Story 1.1 — Bootstrap Unity iOS (phase dev)](todos/completed/2026-04-20-story-1-1-bootstrap-unity-partial.md) — 2026-04-20. Projet Unity 6 LTS, Player Settings iOS, scène Hello, Info.plist permissions, build Xcode project export OK. Phase CI/TestFlight parkée sur acquisition ADP.
+- [Story 1.4 — Stack multijoueur Photon Fusion 2](todos/completed/2026-04-21-story-1-4-photon-fusion-stack.md) — 2026-04-21. DevTestRoom scène + FusionRoomManager (Shared mode), AppId injection via bootstrap idempotent, E2E 2 instances macOS validé.
+- [Story 1.5 — Vocal intégré Photon Voice 2](todos/completed/2026-04-21-story-1-5-photon-voice.md) — 2026-04-21. IVoiceManager + PhotonVoiceManager (auto-follow Fusion), mute button, permission micro FR, E2E 2 instances macOS s'entendent mutuellement.
 
 ---
 

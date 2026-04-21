@@ -30,6 +30,10 @@ google-services.json
 fastlane/.env*
 ApiKeys.cs
 Secrets.cs
+# Photon config (AppId traité comme secret par prudence même si techniquement non-sensible)
+.photon.local
+**/PhotonAppSettings.asset
+**/PhotonAppSettings.asset.meta
 
 # ---- Unity (préventif — projet à venir Story 1.1) ----
 Library/
