@@ -73,21 +73,13 @@ namespace LaVeillee.UI
 
         static TMP_FontAsset _defaultFontAsset;
 
-        /// TMP a besoin d'un FontAsset sinon le texte ne rend rien. Si "TMP Essential
-        /// Resources" n'est pas importé (cas par défaut sur un projet vierge), on
-        /// fabrique un TMP_FontAsset dynamique à partir de la font Unity intégrée.
+        /// TMP a besoin d'un FontAsset sinon le texte ne rend rien. On by-pass complètement
+        /// TMP_Settings (dont le getter NPE si TMP Essentials pas importé) et on fabrique
+        /// systématiquement un TMP_FontAsset dynamique depuis LegacyRuntime.ttf.
         static TMP_FontAsset EnsureDefaultFont()
         {
             if (_defaultFontAsset != null) return _defaultFontAsset;
 
-            // 1) Si TMP Essentials sont importés, on prend le default asset.
-            if (TMP_Settings.defaultFontAsset != null)
-            {
-                _defaultFontAsset = TMP_Settings.defaultFontAsset;
-                return _defaultFontAsset;
-            }
-
-            // 2) Fallback : crée un TMP_FontAsset à partir d'une font Unity built-in.
             var builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
                               ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
             if (builtinFont == null)

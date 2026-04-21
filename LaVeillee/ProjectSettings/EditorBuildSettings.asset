@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/Main.unity
+    guid: 7ff937f361c744d3db4eb27534a4d18d
+  - enabled: 1
     path: Assets/Scenes/HelloLaVeillee.unity
     guid: bca50f5822f1547839435e2b92d31501
   - enabled: 1
