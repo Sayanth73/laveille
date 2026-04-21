@@ -23,6 +23,10 @@ namespace LaVeillee.Networking
             ? new PlayerHandle(_runner.LocalPlayer.PlayerId, $"Player{_runner.LocalPlayer.PlayerId}")
             : default;
 
+        /// Accès direct au Runner pour les écrans qui ont besoin de l'API Fusion
+        /// bas-niveau (ActivePlayers, Spawn, RPCs) — ex. LobbyScreen.
+        public NetworkRunner Runner => _runner;
+
         public event Action<string> RoomCreated;
         public event Action<string> RoomJoined;
         public event Action<RoomLeaveReason> RoomLeft;
@@ -104,11 +108,12 @@ namespace LaVeillee.Networking
 
         static string GenerateRoomId()
         {
-            // 6-char shareable code (e.g., "X9K2QM"). Avoids 0/O/1/I confusion.
-            const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            // Story 2.2 — code NUMÉRIQUE 6 chiffres (AC : "code à 6 chiffres").
+            // 10^6 combinaisons = 1M, collision rate ~10^-4 pour 100 rooms actives — OK pour MVP.
+            // Upgrade : collision-check côté Photon lobby list avant de confirmer le code.
             var bytes = Guid.NewGuid().ToByteArray();
             Span<char> code = stackalloc char[6];
-            for (int i = 0; i < 6; i++) code[i] = alphabet[bytes[i] % alphabet.Length];
+            for (int i = 0; i < 6; i++) code[i] = (char)('0' + (bytes[i] % 10));
             return new string(code);
         }
 

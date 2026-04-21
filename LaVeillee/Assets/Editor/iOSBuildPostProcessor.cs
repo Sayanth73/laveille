@@ -32,8 +32,15 @@ namespace LaVeillee.EditorTools
             plist.root.SetString("NSBluetoothPeripheralUsageDescription", BluetoothPeripheralDescription);
             plist.root.SetString("NSMicrophoneUsageDescription", MicrophoneDescription);
 
+            // Story 2.3 — URL scheme pour deeplinks `laveillee://join/{code}`
+            var urlTypes = plist.root.CreateArray("CFBundleURLTypes");
+            var urlType = urlTypes.AddDict();
+            urlType.SetString("CFBundleURLName", "com.laveillee.app");
+            var schemes = urlType.CreateArray("CFBundleURLSchemes");
+            schemes.AddString("laveillee");
+
             plist.WriteToFile(plistPath);
-            Debug.Log("[iOSBuildPostProcessor] LocalNetwork + Bluetooth + Microphone usage descriptions injected.");
+            Debug.Log("[iOSBuildPostProcessor] LocalNetwork + Bluetooth + Microphone + URL scheme (laveillee://) injected.");
         }
     }
 }
