@@ -61,6 +61,7 @@ namespace LaVeillee.UI
             var go = new GameObject($"Text_{style}", typeof(RectTransform));
             go.transform.SetParent(parent, false);
             var tmp = go.AddComponent<TextMeshProUGUI>();
+            tmp.font = EnsureDefaultFont();
             tmp.text = content;
             tmp.color = color ?? DesignTokens.Colors.Moon100;
             tmp.alignment = align;
@@ -68,6 +69,36 @@ namespace LaVeillee.UI
             tmp.raycastTarget = false;
             ApplyTextStyle(tmp, style);
             return tmp;
+        }
+
+        static TMP_FontAsset _defaultFontAsset;
+
+        /// TMP a besoin d'un FontAsset sinon le texte ne rend rien. Si "TMP Essential
+        /// Resources" n'est pas importé (cas par défaut sur un projet vierge), on
+        /// fabrique un TMP_FontAsset dynamique à partir de la font Unity intégrée.
+        static TMP_FontAsset EnsureDefaultFont()
+        {
+            if (_defaultFontAsset != null) return _defaultFontAsset;
+
+            // 1) Si TMP Essentials sont importés, on prend le default asset.
+            if (TMP_Settings.defaultFontAsset != null)
+            {
+                _defaultFontAsset = TMP_Settings.defaultFontAsset;
+                return _defaultFontAsset;
+            }
+
+            // 2) Fallback : crée un TMP_FontAsset à partir d'une font Unity built-in.
+            var builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
+                              ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
+            if (builtinFont == null)
+            {
+                Debug.LogError("[UIFactory] Aucune font Unity built-in trouvée — texte ne rendra pas.");
+                return null;
+            }
+
+            _defaultFontAsset = TMP_FontAsset.CreateFontAsset(builtinFont);
+            _defaultFontAsset.name = "LaVeilleeRuntimeTMPFont";
+            return _defaultFontAsset;
         }
 
         static void ApplyTextStyle(TextMeshProUGUI tmp, TextStyle s)
@@ -191,7 +222,8 @@ namespace LaVeillee.UI
             return btn;
         }
 
-        /// Avatar placeholder : cercle coloré avec l'initiale du pseudo.
+        /// Avatar placeholder : carré arrondi coloré avec l'initiale du pseudo.
+        /// (Vrai cercle demanderait un sprite importé — post-MVP.)
         public static RectTransform CreateAvatar(Transform parent, string pseudo, int colorSeed, float size)
         {
             var go = new GameObject("Avatar", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
@@ -201,11 +233,10 @@ namespace LaVeillee.UI
 
             var img = go.GetComponent<Image>();
             img.color = DesignTokens.Colors.AvatarFor(colorSeed);
-            // Circle mask via SpriteAtlasManager built-in UISprite — fallback square
-            // acceptable si aucun sprite circulaire n'est disponible.
-            img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
+            // Pas de sprite = carré plein de la couleur du joueur. Les sprites
+            // built-in d'Unity 6 ("UI/Skin/Knob.psd" etc.) ne sont plus disponibles.
+            img.sprite = null;
             img.type = Image.Type.Simple;
-            img.preserveAspect = true;
 
             var initial = string.IsNullOrWhiteSpace(pseudo) ? "?" : char.ToUpperInvariant(pseudo.Trim()[0]).ToString();
             var text = CreateText(go.transform, initial, TextStyle.H2, DesignTokens.Colors.Moon100);

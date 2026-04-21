@@ -47,9 +47,18 @@ namespace LaVeillee.EditorTools
             // Bluetooth + LocalNetwork descriptions injected via iOSBuildPostProcessor (Unity 6 no longer
             // exposes bluetoothUsageDescription on PlayerSettings.iOS).
 
+            // Story 2.1 — Loups-Garous mobile se joue en portrait uniquement
+            // (évite les bascules au milieu d'une partie longue).
+            PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
+            PlayerSettings.allowedAutorotateToPortrait = true;
+            PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+            PlayerSettings.allowedAutorotateToLandscapeLeft = false;
+            PlayerSettings.allowedAutorotateToLandscapeRight = false;
+            PlayerSettings.useAnimatedAutorotation = false;
+
             EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.iOS, BuildTarget.iOS);
 
-            Debug.Log($"[Bootstrap] iOS configured: bundleId={BundleId}, minIOS={MinIOS}");
+            Debug.Log($"[Bootstrap] iOS configured: bundleId={BundleId}, minIOS={MinIOS}, orientation=Portrait");
         }
 
         [MenuItem("LaVeillee/Bootstrap/Create Hello Scene")]
