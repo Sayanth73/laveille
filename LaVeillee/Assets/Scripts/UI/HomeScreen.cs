@@ -19,7 +19,11 @@ namespace LaVeillee.UI
         {
             UIFactory.CreateScreenCanvas("HomeCanvas", out var canvasGo);
             canvasGo.transform.SetParent(transform, false);
-            Root = UIFactory.CreateFullscreen(canvasGo.transform, "HomeRoot", DesignTokens.Colors.Night900);
+            // Fond transparent → la Main Camera affiche la scène 3D (feu de camp + skybox) derrière.
+            Root = UIFactory.CreateFullscreen(canvasGo.transform, "HomeRoot", new Color(0f, 0f, 0f, 0f));
+            // Scrim sombre pour garantir la lisibilité du texte par-dessus la 3D.
+            var scrim = UIFactory.CreateFullscreen(Root, "Scrim", new Color(0.043f, 0.070f, 0.141f, 0.55f));
+            scrim.GetComponent<UnityEngine.UI.Image>().raycastTarget = false;
 
             BuildTopBar();
             BuildHero();
@@ -119,6 +123,16 @@ namespace LaVeillee.UI
             jrt.pivot = new Vector2(0.5f, 0f);
             jrt.anchoredPosition = Vector2.zero;
             _joinBtn.onClick.AddListener(OnJoin);
+
+            // Mode Solo (dev) — sous les CTAs principaux, discret mais accessible.
+            var soloBtn = UIFactory.CreateButton(Root, "🛠 Solo (dev)",
+                UIFactory.ButtonStyle.Ghost, new Vector2(400f, 72f));
+            var srt = soloBtn.GetComponent<RectTransform>();
+            srt.anchorMin = new Vector2(0.5f, 0f);
+            srt.anchorMax = new Vector2(0.5f, 0f);
+            srt.pivot = new Vector2(0.5f, 0f);
+            srt.anchoredPosition = new Vector2(0f, 260f);
+            soloBtn.onClick.AddListener(() => NavigationService.Instance.Show<DevSoloScreen>());
         }
 
         void BuildMenuSheet()

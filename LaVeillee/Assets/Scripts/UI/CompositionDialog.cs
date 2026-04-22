@@ -36,8 +36,7 @@ namespace LaVeillee.UI
         {
             if (_playerCount < 5)
             {
-                Debug.Log("[Composition] < 5 joueurs — composition désactivée.");
-                Destroy(gameObject);
+                BuildTooFewPlayersDialog();
                 return;
             }
 
@@ -206,5 +205,44 @@ namespace LaVeillee.UI
         }
 
         void Close() => Destroy(gameObject);
+
+        void BuildTooFewPlayersDialog()
+        {
+            UIFactory.CreateScreenCanvas("CompositionCanvas", out var canvasGo);
+            canvasGo.transform.SetParent(transform, false);
+            canvasGo.GetComponent<Canvas>().sortingOrder = 500;
+            var root = UIFactory.CreateFullscreen(canvasGo.transform, "Backdrop",
+                new Color(0f, 0f, 0f, 0.85f));
+
+            var panel = UIFactory.CreatePanel(root, "Panel", DesignTokens.Colors.Night700);
+            panel.anchorMin = new Vector2(0.5f, 0.5f);
+            panel.anchorMax = new Vector2(0.5f, 0.5f);
+            panel.pivot = new Vector2(0.5f, 0.5f);
+            panel.sizeDelta = new Vector2(880f, 520f);
+
+            var title = UIFactory.CreateText(panel, "Composition", UIFactory.TextStyle.H1);
+            title.rectTransform.anchorMin = new Vector2(0f, 1f);
+            title.rectTransform.anchorMax = new Vector2(1f, 1f);
+            title.rectTransform.pivot = new Vector2(0.5f, 1f);
+            title.rectTransform.anchoredPosition = new Vector2(0f, -40f);
+            title.rectTransform.sizeDelta = new Vector2(0f, 64f);
+
+            var msg = UIFactory.CreateText(panel,
+                $"Il faut au moins 5 joueurs pour configurer les rôles.\nActuellement : {_playerCount}.",
+                UIFactory.TextStyle.Body, DesignTokens.Colors.Moon300);
+            msg.rectTransform.anchorMin = new Vector2(0f, 0.35f);
+            msg.rectTransform.anchorMax = new Vector2(1f, 0.7f);
+            msg.rectTransform.offsetMin = new Vector2(32f, 0f);
+            msg.rectTransform.offsetMax = new Vector2(-32f, 0f);
+
+            var ok = UIFactory.CreateButton(panel, "OK", UIFactory.ButtonStyle.Primary,
+                new Vector2(400f, 88f));
+            var ort = ok.GetComponent<RectTransform>();
+            ort.anchorMin = new Vector2(0.5f, 0f);
+            ort.anchorMax = new Vector2(0.5f, 0f);
+            ort.pivot = new Vector2(0.5f, 0f);
+            ort.anchoredPosition = new Vector2(0f, 56f);
+            ok.onClick.AddListener(Close);
+        }
     }
 }

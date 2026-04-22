@@ -41,7 +41,10 @@ namespace LaVeillee.UI
         {
             UIFactory.CreateScreenCanvas("LobbyCanvas", out var canvasGo);
             canvasGo.transform.SetParent(transform, false);
-            Root = UIFactory.CreateFullscreen(canvasGo.transform, "LobbyRoot", DesignTokens.Colors.Night900);
+            // Fond transparent + scrim pour laisser voir la scène 3D (village nocturne) derrière.
+            Root = UIFactory.CreateFullscreen(canvasGo.transform, "LobbyRoot", new Color(0f, 0f, 0f, 0f));
+            var scrim = UIFactory.CreateFullscreen(Root, "Scrim", new Color(0.043f, 0.070f, 0.141f, 0.55f));
+            scrim.GetComponent<UnityEngine.UI.Image>().raycastTarget = false;
 
             BuildHeader();
             BuildCodeSection();
@@ -287,9 +290,35 @@ namespace LaVeillee.UI
 
         // --- Polling --------------------------------------------------------
 
+        float _nextDiagLog;
+
         void Update()
         {
-            if (_lobby == null || _room?.Runner == null) return;
+            if (Time.unscaledTime >= _nextDiagLog)
+            {
+                _nextDiagLog = Time.unscaledTime + 1f;
+                var runner = _room?.Runner;
+                int active = runner?.ActivePlayers?.Count() ?? -1;
+                Debug.Log($"[LobbyScreen][DIAG] lobby={(_lobby != null)} lobbyObj={(_lobby?.Object != null)} lobbyValid={(_lobby?.Object != null && _lobby.Object.IsValid)} room={(_room != null)} runner={(runner != null)} running={(runner?.IsRunning == true)} localId={runner?.LocalPlayer.PlayerId} sessionName={_room?.CurrentRoomId} activePlayers={active}");
+            }
+
+            if (_room?.Runner == null) return;
+
+            // RefreshCode ne dépend que de la session — on le laisse tourner même si
+            // LobbyState n'est pas encore propagé par Fusion.
+            RefreshCode();
+
+            // Rpc_RegisterPlayer + reste exigent un NetworkBehaviour initialisé. Si
+            // FindFirstObjectByType a trouvé une instance scene-placed dont le
+            // NetworkObject n'est pas encore bound, on skip proprement.
+            bool lobbyReady = _lobby != null && _lobby.Object != null && _lobby.Object.IsValid;
+            if (!lobbyReady)
+            {
+                // Re-try find au cas où Fusion a respawn / réattaché l'instance.
+                _lobby = FindFirstObjectByType<LobbyState>();
+                lobbyReady = _lobby != null && _lobby.Object != null && _lobby.Object.IsValid;
+                if (!lobbyReady) return;
+            }
 
             if (!_pseudoPushed)
             {
@@ -298,7 +327,6 @@ namespace LaVeillee.UI
                 _pseudoPushed = true;
             }
 
-            RefreshCode();
             RefreshPlayers();
             RefreshPaused();
             RefreshHostControls();
@@ -459,11 +487,27 @@ namespace LaVeillee.UI
             }
         }
 
+        bool _gameStartTriggered;
+
         void CheckCountdown()
         {
             if (_lobby.GameStarting && _lobby.StartCountdown.Expired(_lobby.Runner))
             {
-                Debug.Log("[Lobby] Countdown expiré — transition vers GameScreen (stub Epic 3).");
+                if (!_gameStartTriggered)
+                {
+                    _gameStartTriggered = true;
+                    // Host déclenche la distribution des rôles AVANT la navigation, pour
+                    // que GameState.Phase soit déjà Distribution quand les clients
+                    // affichent GameScreen (sinon RoleRevealScreen verrait Phase=Idle
+                    // et flickerait).
+                    var gs = FindFirstObjectByType<GameState>();
+                    if (gs != null && gs.Object != null && gs.Object.IsValid && IsLocalHost())
+                    {
+                        Debug.Log("[Lobby] Host → GameState.HostStartGame()");
+                        gs.HostStartGame(_lobby);
+                    }
+                }
+                Debug.Log("[Lobby] Countdown expiré — transition vers GameScreen.");
                 NavigationService.Instance.Show<GameScreen>();
             }
         }

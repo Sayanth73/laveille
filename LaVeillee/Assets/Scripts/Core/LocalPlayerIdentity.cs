@@ -42,6 +42,23 @@ namespace LaVeillee.Core
             UserId = PlayerPrefs.GetString(PrefUserId);
             _pseudo = PlayerPrefs.GetString(PrefPseudo);
             AvatarColorSeed = PlayerPrefs.GetInt(PrefSeed);
+
+            // Dev override via CLI : `-pseudo <name>` et `-seed <int>` permettent de
+            // lancer 2 instances locales avec des identités distinctes (PlayerPrefs est
+            // partagé entre instances du même bundle sur macOS).
+            TryApplyCliOverride(ref _pseudo, out var seedOverride);
+            if (seedOverride.HasValue) AvatarColorSeed = seedOverride.Value;
+        }
+
+        static void TryApplyCliOverride(ref string pseudo, out int? seedOverride)
+        {
+            seedOverride = null;
+            var args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length - 1; i++)
+            {
+                if (args[i] == "-pseudo") pseudo = Sanitize(args[i + 1]);
+                else if (args[i] == "-seed" && int.TryParse(args[i + 1], out var s)) seedOverride = s;
+            }
         }
 
         static string GeneratePseudo()

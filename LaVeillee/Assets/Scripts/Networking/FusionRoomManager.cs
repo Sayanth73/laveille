@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Fusion;
 using Fusion.Sockets;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace LaVeillee.Networking
 {
@@ -16,9 +17,14 @@ namespace LaVeillee.Networking
 
         NetworkRunner _runner;
         bool _creatingNotJoining;
+        string _activeSessionName;
 
         public bool IsInRoom => _runner != null && _runner.IsRunning;
-        public string CurrentRoomId => IsInRoom ? _runner.SessionInfo?.Name : null;
+        // On stocke _activeSessionName directement au StartGame — SessionInfo.Name
+        // peut être null/vide tant que la session n'est pas fully propagée.
+        public string CurrentRoomId => !string.IsNullOrEmpty(_activeSessionName)
+            ? _activeSessionName
+            : (IsInRoom ? _runner.SessionInfo?.Name : null);
         public PlayerHandle LocalPlayer => IsInRoom
             ? new PlayerHandle(_runner.LocalPlayer.PlayerId, $"Player{_runner.LocalPlayer.PlayerId}")
             : default;
@@ -69,23 +75,44 @@ namespace LaVeillee.Networking
         async Task StartRunner(string sessionName, int maxPlayers)
         {
             EnsureRunner();
+            _activeSessionName = sessionName;
+
+            // Pass the currently-loaded scene (Main.unity) as StartGameArgs.Scene so Fusion
+            // scans it for scene-placed NetworkObjects (LobbyState). IsSceneTakeOverEnabled
+            // is true by default → Fusion adopts the already-loaded scene instead of reloading.
+            var sceneInfo = new NetworkSceneInfo();
+            var activeScene = SceneManager.GetActiveScene();
+            if (activeScene.buildIndex >= 0)
+            {
+                sceneInfo.AddSceneRef(SceneRef.FromIndex(activeScene.buildIndex), LoadSceneMode.Additive);
+            }
+            else
+            {
+                Debug.LogWarning($"[FusionRoomManager] Active scene '{activeScene.name}' has no build index — LobbyState won't be registered. Vérifie que Main.unity est dans Build Settings.");
+            }
+
             var args = new StartGameArgs
             {
                 GameMode = GameMode.Shared,
                 SessionName = sessionName,
                 PlayerCount = maxPlayers,
+                Scene = sceneInfo,
                 SceneManager = _runner.gameObject.GetComponent<NetworkSceneManagerDefault>()
                     ?? _runner.gameObject.AddComponent<NetworkSceneManagerDefault>()
             };
 
+            Debug.Log($"[FusionRoomManager] StartGame sessionName={sessionName} mode=Shared");
             var result = await _runner.StartGame(args);
             if (result.Ok)
             {
+                Debug.Log($"[FusionRoomManager] StartGame OK — SessionInfo.Name={_runner.SessionInfo?.Name} LocalPlayer={_runner.LocalPlayer} IsRunning={_runner.IsRunning}");
                 if (_creatingNotJoining) RoomCreated?.Invoke(sessionName);
                 else RoomJoined?.Invoke(sessionName);
             }
             else
             {
+                Debug.LogError($"[FusionRoomManager] StartGame FAILED: {result.ShutdownReason}");
+                _activeSessionName = null;
                 Error?.Invoke(MapShutdownReason(result.ShutdownReason));
             }
         }
@@ -141,6 +168,7 @@ namespace LaVeillee.Networking
 
         void INetworkRunnerCallbacks.OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
         {
+            _activeSessionName = null;
             var leaveReason = shutdownReason switch
             {
                 ShutdownReason.Ok                       => RoomLeaveReason.LocalLeft,

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using Fusion;
+using Fusion.Editor;
 using LaVeillee.Core;
 using LaVeillee.Networking;
 using UnityEditor;
@@ -46,6 +47,19 @@ namespace LaVeillee.EditorTools
             lobbyGo.AddComponent<NetworkObject>();
             lobbyGo.AddComponent<LobbyState>();
 
+            // GameState scene-placed — idem, détenu par le host (StateAuthority suit
+            // celui de LobbyState dans Shared mode : le joueur le plus ancien).
+            var gameStateGo = new GameObject("[GameState]");
+            gameStateGo.AddComponent<NetworkObject>();
+            gameStateGo.AddComponent<GameState>();
+
+            EditorSceneManager.SaveScene(scene, ScenePath);
+
+            // Force le scene-baking Fusion : assigne NetworkObjectTypeId aux NOs scene-placed.
+            // sceneSaving event devrait déjà le faire, mais belt-and-suspenders pour un
+            // scene-bootstrap programmatique — si on skip ça, LobbyState.Object reste null
+            // au runtime car Fusion ne reconnaît pas le NO sans TypeId baked.
+            NetworkObjectPostprocessor.BakeScene(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
 
             // Ajoute Main.unity en tête des Build Settings (scène de démarrage).

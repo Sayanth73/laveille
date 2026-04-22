@@ -12,6 +12,10 @@ namespace LaVeillee.Core
     {
         void Awake()
         {
+#if UNITY_STANDALONE
+            Screen.SetResolution(540, 960, FullScreenMode.Windowed);
+#endif
+
             DeeplinkHandler.EnsureExists();
             NavigationService.EnsureExists();
             GameServices.EnsureExists();
@@ -35,6 +39,7 @@ namespace LaVeillee.Core
             var join = new GameObject("JoinRoomScreen").AddComponent<JoinRoomScreen>();
             var lobby = new GameObject("LobbyScreen").AddComponent<LobbyScreen>();
             var game = new GameObject("GameScreen").AddComponent<GameScreen>();
+            var solo = new GameObject("DevSoloScreen").AddComponent<DevSoloScreen>();
 
             // Parent sous un conteneur pour hiérarchie propre
             var root = new GameObject("[Screens]");
@@ -43,6 +48,7 @@ namespace LaVeillee.Core
             join.transform.SetParent(root.transform, false);
             lobby.transform.SetParent(root.transform, false);
             game.transform.SetParent(root.transform, false);
+            solo.transform.SetParent(root.transform, false);
         }
     }
 }
